@@ -14,7 +14,7 @@
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    dock = new QDockWidget("Query answer", this, Qt::Popup);
+    dock = new QDockWidget("Query answer", this);
     text = new QTextEdit;
 
     dock->resize(450,600);
