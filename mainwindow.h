@@ -6,6 +6,7 @@
 #include <QDockWidget>
 #include <QTextEdit>
 #include <QTreeWidget>
+#include <QFile>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -25,12 +26,15 @@ private:
     QWidget* mainWidget;
     QDockWidget* dock;
     QTextEdit* text;
-    QString file_way;
+    QFile* pointerFile=nullptr;
+    QTreeWidgetItem* tree_pos;
 private slots:
     void OpenFile();
     void OpenQuery();
-    void ExecuteQuery();
+    void Perform();
     void ClearTree();
     void CloseWindow();
+    void ClearAll();
+    void Active();
 };
 #endif // MAINWINDOW_H
