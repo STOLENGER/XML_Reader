@@ -9,7 +9,7 @@
 #include <QErrorMessage>
 #include <QTabWidget>
 #include <QString>
-#include <QTreeWidget>
+
 
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
@@ -20,8 +20,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     dock->resize(450,600);
     dock->hide();
-    QMenu *MenuActive=new QMenu("Active");
+    MenuActive=new QMenu("Active");
     MenuActive->addAction("&Сделать активным файл",this,SLOT(Active()));
+    MenuActive->addAction("&Закрыть файл",this,SLOT(CloseFile()));
 
     QMenu *Menu=new QMenu("Menu");
     Menu->addAction("&Open File",this,SLOT(OpenFile()));
@@ -32,9 +33,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     Menu->addSeparator();
     Menu->addAction("&Exit",this,SLOT(CloseWindow()),Qt::Key_Escape);
     ui->menubar->addMenu(Menu);
-    ui->menubar->addMenu(MenuActive);
-
-
+    //ui->menubar->addMenu(MenuActive);
 
     connect(ui->pushButton,SIGNAL(clicked()),this,SLOT(Perform()));
     connect(ui->pushButton_OpenXML,SIGNAL(clicked()),this,SLOT(OpenFile()));
@@ -53,15 +52,18 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     setCentralWidget(mainWidget);
     setWindowTitle("XML Parser");
 
+    ui->treeView->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(ui->treeView, SIGNAL(customContextMenuRequested(const QPoint&)),
+            this, SLOT(MenuRequested()));
+
+    //connect( ui->treeView, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(slotEditRecord()));
+    //connect( ui->treeView, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(slotCustomMenuRequested(QPoint)));
+    //MenuActive->popup(ui->treeView->mapToGlobal(pos()));
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
-    delete mainLayout;
-    delete mainWidget;
-    delete dock;
-    delete text;
     delete pointerFile;
 }
 
@@ -88,6 +90,52 @@ void MainWindow::OpenFile()
         tree_pos->setFont(0, QFont("Helvetica [Cronyx]", 14, QFont::Bold));
     }
 
+}
+
+
+void MainWindow::CloseFile()
+{
+QString newFileName =  pointerFile->fileName();
+newFileName.resize(pointerFile->fileName().lastIndexOf('/') + 1);
+
+    QModelIndex model;
+    if(ui->treeView->currentIndex().row())
+        model = ui->treeView->model()->index(ui->treeView->currentIndex().row() - 1,ui->treeView->currentIndex().column());
+    else
+        model = ui->treeView->model()->index(ui->treeView->currentIndex().row() + 1,ui->treeView->currentIndex().column());
+
+    QString ActiveFile(ui->treeView->currentItem()->text(0));
+    delete ui->treeView->currentItem();
+     pointerFile->close();
+    if(model.isValid())
+    {
+        ui->treeView->setCurrentIndex(model);
+           newFileName += ui->treeView->currentItem()->data(0,0).toString();
+        if(pointerFile->fileName().contains(ActiveFile))
+        {
+               pointerFile->setFileName(newFileName);
+            ui->treeView->currentItem()->setFont(0, QFont("Helvetica [Cronyx]", 14, QFont::Bold));
+        }
+        tree_pos = ui->treeView->currentItem();
+    }
+    else
+    {
+        delete pointerFile;
+        pointerFile=nullptr;
+    }
+
+}
+
+void MainWindow::Active()
+{
+    //tree_pos = ui->treeView->itemAt(0, 0);
+    //tree_pos->setFont(0, QFont("Helvetica [Cronyx]", 12));
+    QString FileName =  pointerFile->fileName();
+    FileName.resize(pointerFile->fileName().lastIndexOf('/') + 1);
+    FileName += ui->treeView->currentItem()->data(0,0).toString();
+    pointerFile->setFileName(FileName);
+    ui->treeView->currentItem()->setFont(0, QFont("Helvetica [Cronyx]", 14, QFont::Bold));
+    tree_pos = ui->treeView->currentItem();
 }
 
 void MainWindow::OpenQuery() {
@@ -138,6 +186,7 @@ void MainWindow::ClearTree()
 {
     ui->treeView->clear();
     delete pointerFile;
+    pointerFile=nullptr;
 
 }
 
@@ -151,17 +200,14 @@ void MainWindow::ClearAll()
     ClearTree();
     ui->textEdit->clear();
 
+
+}
+void MainWindow::MenuRequested()
+{
+    if(ui->treeView->currentItem() && !ui->treeView->currentItem()->parent())
+        MenuActive->exec(ui->treeView->mapToGlobal(QPoint(0,0)));
 }
 
-void MainWindow::Active()
-{
-    tree_pos = ui->treeView->itemAt(0, 0);
-    tree_pos->setFont(0, QFont("Helvetica [Cronyx]", 13));
-    QString FileName =  pointerFile->fileName();
-    FileName.resize(pointerFile->fileName().lastIndexOf('/') + 1);
-    FileName += ui->treeView->currentItem()->data(0,0).toString();
-    pointerFile->setFileName(FileName);
-    ui->treeView->currentItem()->setFont(0, QFont("Helvetica [Cronyx]", 14, QFont::Bold));
-    tree_pos = ui->treeView->currentItem();
-}
+
+
 

@@ -35,11 +35,14 @@ bool AddressBookParser::characters(const QString& strText) {
 
 bool AddressBookParser::endElement(const QString&, const QString&, const QString& str) {
     if (str != "array" && str != "catalog") {
+        if (str == "Name" || str == "title") {
+            currentItem->parent()->setText(0, m_strText);
+        }
         currentItem->setText(0, m_strText);
         currentItem = currentItem->parent();
     } else if (str == "array") {
-        currentItem = currentItem->parent();
-    }
+            currentItem = currentItem->parent();
+        }
     return true;
 }
 

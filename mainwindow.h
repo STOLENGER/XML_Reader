@@ -28,6 +28,7 @@ private:
     QTextEdit* text;
     QFile* pointerFile=nullptr;
     QTreeWidgetItem* tree_pos;
+    QMenu *MenuActive;
 private slots:
     void OpenFile();
     void OpenQuery();
@@ -36,5 +37,8 @@ private slots:
     void CloseWindow();
     void ClearAll();
     void Active();
+    void CloseFile();
+    void MenuRequested();
+
 };
 #endif // MAINWINDOW_H
